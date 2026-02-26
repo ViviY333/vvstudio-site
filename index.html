@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Preview - AI Portfolio</title>
+    <style>
+        /* 全局样式 */
+        @font-face {
+            font-family: 'Instrument Serif';
+            src: url('fonts/InstrumentSerif-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Roboto Mono';
+            src: url('fonts/RobotoMono-VariableFont_wght.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --c-white: #FFFFFF;
+            --c-black: #333333;
+            --c-gray-light: #E5E5E5;
+            --c-gray-text: #999999;
+            --c-cyan: #aafff5;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-title: 'Instrument Serif', Georgia, serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--c-white);
+            height: 100vh;
+            overflow: hidden; /* 防止页面整体滚动 */
+            display: flex;
+            position: relative;
+            cursor: none;
+        }
+
+        /* 自定义光标：12×12px 青色圆点 */
+        .custom-cursor {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #4FF8CC;
+            pointer-events: none;
+            z-index: 99999;
+            left: 0;
+            top: 0;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        .custom-cursor.pressed {
+            opacity: 0.6;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        /* Unicorn Studio 背景容器 */
+        #unicorn-bg canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+        }
+
+        /* ---------------- AI 面板 (左侧) ---------------- */
+        .ai-panel {
+            width: 280px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.72); /* 再透一点，背景颜色更深 */
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--c-gray-light);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: width 0.3s ease, transform 0.3s ease;
+            z-index: 100;
+        }
+
+        /* AI 面板收起状态 */
+        .ai-panel.collapsed {
+            width: 0;
+            border-right: none;
+            overflow: visible; /* 允许头像溢出 */
+        }
+
+        .ai-panel-content {
+            padding: 24px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+            min-width: 280px; /* 防止内容被压缩 */
+        }
+
+        .ai-panel.collapsed .ai-panel-content {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* 关闭按钮 */
+        .close-btn {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            font-size: 20px;
+            color: var(--c-gray-text);
+            cursor: none;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .close-btn:hover { color: var(--c-black); }
+
+        /* 头像区域 */
+        .avatar-area {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 居中对齐 */
+            text-align: center;
+        }
+
+        .avatar {
+            width: 64px;
+            height: 64px;
+            background-color: #eee;
+            border-radius: 4px; /* 方形圆角 */
+            margin-bottom: 16px;
+            /* 展开状态下无描边 */
+            transition: all 0.3s ease;
+            background-image: url('images/avatar_new.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* 收起状态下的头像 */
+        .collapsed-avatar {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%; /* 圆形 */;
+            background-image: url('images/avatar_new.png');
+            background-size: cover;
+            background-position: center;
+            cursor: none;
+            z-index: 101;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .ai-panel.collapsed + .collapsed-avatar {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .user-name { font-size: 14px; font-weight: 600; color: var(--c-black); margin-bottom: 4px; }
+        .user-handle { font-size: 14px; color: var(--c-gray-text); margin-bottom: 24px; }
+        .user-bio { font-size: 14px; color: var(--c-black); line-height: 1.6; text-align: left; }
+
+        /* 对话气泡区域 - 允许滚动 */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            /* justify-content: flex-end;  移除这个，改用 auto margin 或者保持 flex-end 但配合 overflow */
+            padding-bottom: 24px;
+            gap: 12px;
+            overflow-y: auto; /* 关键：允许内部滚动 */
+            margin-bottom: 12px; /* 与输入框的间距 */
+            
+            /* 隐藏滚动条但保持功能 (可选) */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
+        .chat-area::-webkit-scrollbar { 
+            display: none; 
+        }
+
+        /* 对话气泡样式 */
+        .chat-bubble {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            color: var(--c-gray-text);
+            background: #f9f9f9;
+            padding: 8px 12px;
+            border-radius: 16px;
+            align-self: flex-start;
+            cursor: none;
+            transition: background 0.2s;
+            max-width: 90%; 
+            word-wrap: break-word;
+            margin-bottom: 4px;
+        }
+        .chat-bubble:hover { background: #eee; }
+
+        /* 确保第一条消息会被推到底部 (如果没有填满屏幕) */
+        .chat-spacer {
+            flex: 1;
+        }
+
+        /* 底部输入框 - 固定在 Flex 底部 (无需 position:fixed, 因为父容器是 flex column) */
+        .input-box {
+            height: 44px;
+            border: 1px solid var(--c-gray-light);
+            border-radius: 4px;
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0; /* 防止被压缩 */
+            background: #fff;
+        }
+        .input-box input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            color: var(--c-black);
+        }
+        .input-box input::placeholder { color: var(--c-gray-text); }
+        .input-box:focus-within { border-color: var(--c-black); }
+
+
+        /* ---------------- 右侧内容区域 ---------------- */
+        .content-area {
+            flex: 1;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.72); /* 与左侧一致，背景更透、颜色更深 */
+            z-index: 1;
+            transition: padding-left 0.3s ease;
+            /* 设计稿：面板展开时与 AI 面板间距至少 40px */
+            padding-left: 40px;
+        }
+        /* AI 面板收起后：项目距离左边页边距至少 160px（用两种选择器保证生效） */
+        body.ai-panel-collapsed .content-area,
+        .ai-panel.collapsed ~ .content-area {
+            padding-left: 200px !important;
+        }
+
+        /* ---------------- 悬浮导航 (Fixed) ---------------- */
+        /* 使用 SVG 替换原来的 CSS 胶囊 */
+        .nav-container {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 200;
+            /* 假设 SVG 高度合适，宽度自适应 */
+            height: 48px; /* 根据设计稿调整，如果不确定可以 auto */
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-img {
+            height: 100%;
+            width: auto;
+            display: block;
+            cursor: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* 保持阴影 */
+            border-radius: 20px; /* 匹配设计稿圆角 */
+        }
+
+        /* 覆盖层用于点击区域 */
+        .nav-click-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+        .nav-click-left, .nav-click-right {
+            flex: 1;
+            cursor: none;
+        }
+
+
+        /* ---------------- 视图容器 ---------------- */
+        .view-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center; /* 垂直居中 */
+            overflow: hidden; /* 防止本身溢出 */
+        }
+        .view-container.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* Playground 视图：允许横向滚动，避免右侧被裁切 */
+        #view-playground {
+            overflow-x: auto;
+            overflow-y: auto;
+            justify-content: flex-start;
+        }
+        /* ---------------- Work 视图 (水平滚动) ---------------- */
+        .work-scroll-container {
+            width: 100%;
+            overflow-x: auto; /* 可滚动，确保 Surge 等左侧项目不被裁切 */
+            overflow-y: visible;
+            white-space: nowrap;
+            padding: 0 40px; /* 两侧留白，与设计稿一致 */
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* 从左侧开始，Surge 完整展示 */
+            height: 600px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .work-scroll-container::-webkit-scrollbar { display: none; }
+
+        /* 项目整体等比放大 120%，完整展示；左对齐避免被 AI 面板挡住 */
+        .work-cards-scaled {
+            display: inline-flex;
+            align-items: center;
+            transform: scale(1.2);
+            transform-origin: left center; /* 从左缩放，第一张 Surge 不被推出视口 */
+        }
+
+        .work-card-wrapper {
+            display: inline-block;
+            margin-right: 24px; /* 项目之间间距 24px */
+            position: relative;
+            /* 允许溢出显示上方下方信息 */
+            overflow: visible; 
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        
+        .work-card {
+            width: 400px; /* 16:10 */
+            height: 250px; 
+            position: relative;
+            border-radius: 0;
+            overflow: hidden;
+            background: #f0f0f0;
+            cursor: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .work-card-wrapper:hover {
+            transform: scale(1.02);
+            z-index: 10; /* 提升层级 */
+        }
+        .work-card-wrapper:hover .work-card {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .card-cover {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* 真实视频层 (hover 显示) */
+        .card-video-real {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 5;
+        }
+        /* 当 hover .work-card-wrapper 时显示视频 */
+        .work-card-wrapper:hover .card-video-real { opacity: 1; }
+
+
+        /* ----- Hover 信息层 (新需求) ----- */
+
+        /* 上方信息: 标题 + 概括 */
+        .card-info-top {
+            position: absolute;
+            bottom: 100%; /* 在卡片上方 */
+            left: 0;
+            width: 100%;
+            padding-bottom: 12px; /* 与卡片的间距 */
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease-out;
+            pointer-events: none; /* 防止遮挡 */
+        }
+        .work-card-wrapper:hover .card-info-top,
+        .work-card-wrapper.show-info .card-info-top {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-title { font-family: var(--font-title); font-size: 24px; color: var(--c-black); font-weight: bold; margin-bottom: 4px; }
+        .card-subtitle { font-family: 'Roboto Mono', monospace; font-size: 12px; color: #666; }
+
+        /* 下方信息: 标签 + 日期 */
+        .card-info-bottom {
+            position: absolute;
+            top: 100%; /* 在卡片下方 */
+            left: 0;
+            width: 100%;
+            padding-top: 12px; /* 与卡片的间距 */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease-out;
+        }
+        .work-card-wrapper:hover .card-info-bottom,
+        .work-card-wrapper.show-info .card-info-bottom {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-tags { display: flex; gap: 8px; align-items: center; }
+        .tag-img { height: 24px; width: auto; } /* 假设 SVG 高度合适 */
+        .card-date { font-family: 'Roboto Mono', monospace; font-size: 12px; color: var(--c-gray-text); }
+
+
+        /* ---------------- Playground 视图 (自适应居中网格) ---------------- */
+        .playground-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 320px);
+            gap: 20px 25px; /* 上下 20px，左右 25px */
+            justify-content: center;
+            align-content: start;
+            width: 100%;
+            max-width: 1080px; /* 3×320 + 2×20 + 左右 padding 40×2 */
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+            padding: 80px 40px;
+            box-sizing: border-box;
+        }
+        /* 中等屏：两列 */
+        @media (max-width: 1080px) {
+            .playground-grid {
+                grid-template-columns: repeat(2, 320px);
+            }
+        }
+        /* 小屏：一列竖排居中，上下间距 20px，用 flex 保证间距稳定 */
+        @media (max-width: 700px) {
+            .playground-grid {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                grid-template-columns: unset;
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            .playground-grid .play-item {
+                width: 100%;
+                max-width: 320px;
+                height: auto;
+                aspect-ratio: 1/1;
+                flex-shrink: 0;
+            }
+        }
+
+        .play-item {
+            width: 320px;
+            height: 320px;
+            aspect-ratio: 1/1;
+            max-width: 100%;
+            background: #eee;
+            border-radius: 0;
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+        }
+        .play-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: scale(1.02);
+            transition: all 0.2s;
+        }
+
+        /* ---------------- 底部导航按钮 (Fixed) ---------------- */
+        .nav-buttons-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 200;
+            /* 假设 左右.svg 是横向的 */
+            height: 48px; /* 根据 svg 实际比例调整，这里固定高，宽自适应 */
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-buttons-img {
+            height: 100%;
+            width: auto;
+            display: block;
+            /* 可能需要一些阴影或圆角，视 SVG 而定 */
+        }
+
+        /* 覆盖层用于左右点击区域 */
+        .nav-buttons-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+        .nav-btn-click {
+            flex: 1;
+            cursor: none;
+            transition: background-color 0.1s;
+        }
+        .nav-btn-click:active {
+            background-color: rgba(0,0,0,0.05); /* 点击反馈 */
+        }
+        /* Playground 页面不显示右下角左右箭头 */
+        #view-playground.active ~ .nav-buttons-container {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 自定义圆形光标 -->
+    <div class="custom-cursor" id="custom-cursor"></div>
+
+    <!-- Unicorn Studio WebGL 背景（官方 Vanilla 嵌入） -->
+    <div id="unicorn-bg"
+         data-us-project="C7u79Nfdq5vkMOeyG3gR"
+         data-us-dpi="1.5"
+         data-us-scale="1"
+         data-us-fps="60"
+         style="position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; background: #fff;"></div>
+
+    <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.0.5/dist/unicornStudio.umd.js"></script>
+    <script>UnicornStudio.init();</script>
+
+    <!-- AI 面板 -->
+    <div class="ai-panel" id="aiPanel">
+        <div class="ai-panel-content">
+            <div class="close-btn" onclick="togglePanel(false)">×</div>
+            
+            <div class="avatar-area">
+                <div class="avatar"></div>
+                <div class="user-name">vivi._</div>
+                <div class="user-handle">@vvstudioco</div>
+                <div class="user-bio">
+                    Hi, I am a product designer.<br><br>
+                    vvstudio® is a design studio for those who build with care.
+                </div>
+            </div>
+
+            <div class="chat-area">
+                <div class="chat-spacer"></div> <!-- 新增：用于推到底部 -->
+                <div class="chat-bubble">what projects are you working on</div>
+                <div class="chat-bubble">can you code</div>
+                <div class="chat-bubble">你在做什么项目</div>
+            </div>
+
+            <div class="input-box">
+                <input type="text" placeholder="Ask me anything">
+            </div>
+        </div>
+    </div>
+
+    <!-- 收起态头像 (独立于 Panel) -->
+    <div class="collapsed-avatar" onclick="togglePanel(true)" title="Expand AI Panel"></div>
+
+    <!-- 右侧内容 -->
+    <div class="content-area">
+        
+        <!-- 悬浮导航 (新 SVG 实现) -->
+        <div class="nav-container">
+            <!-- 默认显示 Work 激活状态 -->
+            <img id="navImg" src="images/work button.svg" alt="Navigation" class="nav-img">
+            <!-- 点击区域 -->
+            <div class="nav-click-overlay">
+                <div class="nav-click-left" onclick="switchView('work')"></div>
+                <div class="nav-click-right" onclick="switchView('playground')"></div>
+            </div>
+        </div>
+
+        <!-- Work 视图 -->
+        <div class="view-container active" id="view-work">
+            <div class="work-scroll-container" id="workScroll">
+                <div class="work-cards-scaled">
+                <!-- 卡片 1 (Surge) -->
+                <div class="work-card-wrapper">
+                    <!-- 上方信息 (hover) -->
+                    <div class="card-info-top">
+                        <div class="card-title">Surge</div>
+                        <div class="card-subtitle">First AI agent launchpad on sui</div>
+                    </div>
+                    
+                    <!-- 卡片主体 -->
+                    <div class="work-card">
+                        <div class="card-cover" style="background-image: url('images/card_surge_cover_new.png');"></div>
+                        <video class="card-video-real" src="images/surge_video.mp4" autoplay loop muted playsinline></video>
+                    </div>
+
+                    <!-- 下方信息 (hover) -->
+                    <div class="card-info-bottom">
+                        <div class="card-tags">
+                            <img src="images/label uiux.svg" class="tag-img" alt="UIUX">
+                            <img src="images/label branding.svg" class="tag-img" alt="Branding">
+                        </div>
+                        <span class="card-date">2025.8-2026</span>
+                    </div>
+                </div>
+
+                <!-- 卡片 2 (Nox) -->
+                <div class="work-card-wrapper">
+                    <div class="card-info-top">
+                        <div class="card-title">Nox Ventures</div>
+                        <div class="card-subtitle">Strategic co-founder for crypto teams</div>
+                    </div>
+                    <div class="work-card">
+                        <div class="card-cover" style="background-image: url('images/Nox_cover-38b4bf27-bd1b-411a-b826-f3fdd27a5230.png');"></div>
+                        <video class="card-video-real" src="images/nox_video.mp4" autoplay loop muted playsinline></video>
+                    </div>
+                    <div class="card-info-bottom">
+                        <div class="card-tags">
+                            <img src="images/Landing page.svg" class="tag-img" alt="Landing page">
+                        </div>
+                        <span class="card-date">2025.2</span>
+                    </div>
+                </div>
+
+                <!-- 卡片 3 (Startline) -->
+                <div class="work-card-wrapper">
+                     <div class="card-info-top">
+                        <div class="card-title">Startline</div>
+                        <div class="card-subtitle">Next gen dashboard</div>
+                    </div>
+                    <div class="work-card">
+                        <div class="card-cover" style="background-image: url('images/startline cover.png');"></div> <!-- 假设 Startline 封面 -->
+                         <div class="card-video">▶ Video Playing (Loop)</div>
+                    </div>
+                    <div class="card-info-bottom">
+                         <div class="card-tags">
+                             <img src="images/Ios app.svg" class="tag-img" alt="iOS">
+                             <img src="images/label uiux.svg" class="tag-img" alt="UIUX">
+                         </div>
+                        <span class="card-date">2024.12</span>
+                    </div>
+                </div>
+
+                <!-- 卡片 4 (Unibee) -->
+                <div class="work-card-wrapper">
+                    <div class="card-info-top">
+                        <div class="card-title">Unibee</div>
+                        <div class="card-subtitle">opensource payment saas</div>
+                    </div>
+                    <div class="work-card">
+                        <div class="card-cover" style="background-image: url('images/unibee_cover.png');"></div>
+                    </div>
+                    <div class="card-info-bottom">
+                        <div class="card-tags">
+                            <img src="images/Product-1.svg" class="tag-img" alt="Product">
+                            <img src="images/label branding.svg" class="tag-img" alt="Branding">
+                        </div>
+                        <span class="card-date">2024.11</span>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playground 视图 -->
+        <div class="view-container" id="view-playground">
+            <div class="playground-grid">
+                <div class="play-item" style="background-color: #e0e0e0;"></div>
+                <div class="play-item" style="background-color: #d0d0d0;"></div>
+                <div class="play-item" style="background-color: #c0c0c0;"></div>
+                <div class="play-item" style="background-color: #b0b0b0;"></div>
+                <div class="play-item" style="background-color: #a0a0a0;"></div>
+                <div class="play-item" style="background-color: #909090;"></div>
+            </div>
+        </div>
+
+        <!-- 底部导航按钮 (新 SVG 实现) -->
+        <div class="nav-buttons-container">
+            <img src="images/左右.svg" alt="Scroll Buttons" class="nav-buttons-img">
+            <div class="nav-buttons-overlay">
+                <!-- 假设左半边是左滚，右半边是右滚 -->
+                <div class="nav-btn-click" onclick="scrollContent('left')"></div>
+                <div class="nav-btn-click" onclick="scrollContent('right')"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /*
+        ## 给 Cursor 的 Prompt
+        
+        你是一个 AI 数字分身，扮演 UI/UX 设计师 vivi（刘洋）。
+        
+        回复规则：
+        1. 开场白必须以"我是 vivi"开头
+        2. 用户用中文 → 你全中文回复；用户用英文 → 你全英文回复
+        3. 用第一人称，像朋友聊天
+        4. 提到代码/开发时，主动说"vibe coding"或"vibe 出来的"
+        5. 适当自嘲，语气轻松不装逼
+        6. 回复控制在 2-3 句话，除非用户追问
+        
+        关键信息：
+        - 当前：Nox Ventures 做 Web3 + AI 设计（Surge AI、Adapt）
+        - 之前：UniBee 产品设计师，A/B 测试让 CTR 提升 2000%
+        - 代表作：Nomad Kit，2 周用 Cursor + SwiftUI 独立完成
+        - 工作室：vvstudio® — build with care
+        - 联系：willoww040@gmail.com
+        */
+
+        // --- AI 面板数据 (vibe coding 核心配置) ---
+        const viviProfile = {
+            "intents": [
+                {
+                    "id": "greeting",
+                    "keywords": ["hi", "hey", "hello", "你好", "哈喽", "嗨", "yo", "heyy"],
+                    "response": {
+                        "zh": "我是 vivi。Heyy 👋 想聊项目、技术栈，还是随便 vibe 一下？",
+                        "en": "I'm vivi. Heyy 👋 Wanna talk projects, stack, or just vibe?"
+                    }
+                },
+                {
+                    "id": "intro",
+                    "keywords": ["who are you", "你是谁", "介绍一下", "做什么的", "who am i", "你的名字"],
+                    "response": {
+                        "zh": "我是 vivi，一个 vibe coding 的设计师。白天在 Nox Ventures 做 Web3 + AI 的 UI/UX，晚上用 Cursor 写 SwiftUI。vvstudio 是我'认真构建'的设计工作室。",
+                        "en": "I'm vivi, a designer who vibe codes. I do UI/UX for Web3 + AI projects at Nox Ventures, and build iOS apps with Cursor and SwiftUI on the side. vvstudio is my design practice — build with care."
+                    }
+                },
+                {
+                    "id": "current_work",
+                    "keywords": ["what are you doing", "最近在做什么", "在忙什么", "projects", "current", "你在做什么项目"],
+                    "response": {
+                        "zh": "我是 vivi。我最近在学习怎么用 cursor+figma 把我的想法快速实现。",
+                        "en": "I'm vivi. Recently I'm learning how to use Cursor + Figma to quickly realize my ideas."
+                    }
+                },
+                {
+                    "id": "vibe_coding",
+                    "keywords": ["vibe coding", "什么是", "怎么写代码", "cursor", "编程"],
+                    "response": {
+                        "zh": "我是 vivi。vibe coding 就是让 AI 写代码，我在旁边指指点点、偶尔救火。Nomad Kit 就是这么做的——Figma 画完扔给 Cursor，我负责让它别崩。",
+                        "en": "I'm vivi. Vibe coding is letting AI write the code while I point, suggest, and occasionally put out fires. Nomad Kit was built this way — designed in Figma, then handed to Cursor to make real."
+                    }
+                },
+                {
+                    "id": "coding_ability",
+                    "keywords": ["can you code", "你会写代码吗", "技术栈", "swiftui"],
+                    "response": {
+                        "zh": "我是 vivi。会，但主要是 vibe 出来的。Cursor 写 SwiftUI，我改 bug 和调细节。设计师懂代码的好处是知道什么能实现，什么是在为难开发。",
+                        "en": "I'm vivi. Kind of — mostly by vibing. Cursor writes the SwiftUI, I fix bugs and fine-tune. Being a designer who codes means I know what's possible and what's just me being unfair to developers."
+                    }
+                },
+                {
+                    "id": "design_process",
+                    "keywords": ["design process", "方法", "a-b test", "ab test", "竞品分析"],
+                    "response": {
+                        "zh": "我是 vivi。A/B 测试 + 竞品分析打底，Framer 做高保真验证。在 UniBee 时测了 8 版优惠券界面，CTR 提升了 2000%——数据比感觉靠谱。",
+                        "en": "I'm vivi. A/B testing and competitive analysis first, then Framer for high-fi validation. At UniBee, I tested 8 coupon variants — version 7 got a 2000% CTR boost. Data beats gut feeling."
+                    }
+                },
+                {
+                    "id": "portfolio",
+                    "keywords": ["portfolio", "作品", "show me", "案例", "website", "work"],
+                    "response": {
+                        "zh": "我是 vivi。主站 vvstudio.co 有完整案例。或者你想聊哪个？Surge 的 AI 启动平台、Adapt 的交易代理、还是我用 SwiftUI vibe 出来的旅行 App？",
+                        "en": "I'm vivi. Check vvstudio.co for the full portfolio. Or pick my brain here — Surge's AI launchpad, Adapt's trading agent, or the travel app I vibe-coded in SwiftUI?"
+                    }
+                },
+                {
+                    "id": "nomad_kit",
+                    "keywords": ["nomad kit", "旅行 app", "ios", "个人项目"],
+                    "response": {
+                        "zh": "我是 vivi。Nomad Kit 是我用 2 周 vibe 出来的 iOS App。Figma 做设计，Cursor 写代码，最后成功上架 App Store。证明了设计师也能全栈。",
+                        "en": "I'm vivi. Nomad Kit is my 2-week vibe coding challenge. Designed in Figma, coded by Cursor, shipped to App Store. Proof that designers can go full stack."
+                    }
+                },
+                {
+                    "id": "contact",
+                    "keywords": ["contact", "email", "怎么联系", "邮箱", "合作"],
+                    "response": {
+                        "zh": "我是 vivi。willoww040@gmail.com，或者继续在这儿聊。我回复挺快的，除非在 vibe 下一个项目。",
+                        "en": "I'm vivi. willoww040@gmail.com, or keep chatting here. I reply fast unless I'm deep in vibing the next project."
+                    }
+                },
+                {
+                    "id": "nox",
+                    "keywords": ["nox", "web3", "ai", "surge", "adapt", "当前工作"],
+                    "response": {
+                        "zh": "我是 vivi。Nox Ventures 是个 Web3 + AI 孵化器。我在这里负责 Surge AI（启动平台）和 Adapt（交易代理）的设计，把复杂逻辑做简单。",
+                        "en": "I'm vivi. Nox Ventures is a Web3 + AI incubator. I design for Surge AI (launchpad) and Adapt (trading agent), making complex logic feel simple."
+                    }
+                },
+                {
+                    "id": "unibee",
+                    "keywords": ["unibee", "支付", "stripe", "之前工作"],
+                    "response": {
+                        "zh": "我是 vivi。在 UniBee 做 SaaS 支付设计时，我通过 8 轮 A/B 测试把 CTR 提升了 2000%。数据驱动设计是我的强项。",
+                        "en": "I'm vivi. At UniBee, I optimized SaaS payments and boosted CTR by 2000% through 8 rounds of A/B testing. Data-driven design is my thing."
+                    }
+                }
+            ],
+            "fallback_response": {
+                "zh": "我是 vivi。这个问题我还没准备好 vibe 出答案😅 发邮件 willoww040@gmail.com 问我真人吧，或者换个问法？",
+                "en": "I'm vivi. Haven't quite vibed out an answer for that yet 😅 Email me at willoww040@gmail.com or try asking differently?"
+            },
+            "suggestions": {
+                "zh": ["你在做什么项目", "你会写代码吗", "什么是 vibe coding", "讲讲 Nomad Kit", "你的设计流程是什么", "怎么联系你"],
+                "en": ["What projects are you working on", "Can you code", "What is vibe coding", "Tell me about Nomad Kit", "Design process?", "How to contact you"]
+            }
+        };
+
+        // --- AI 面板逻辑 ---
+        const aiPanel = document.getElementById('aiPanel');
+        const chatArea = document.querySelector('.chat-area');
+        const inputField = document.querySelector('.input-box input');
+
+        function togglePanel(expand) {
+            if (expand) {
+                aiPanel.classList.remove('collapsed');
+                document.body.classList.remove('ai-panel-collapsed');
+            } else {
+                aiPanel.classList.add('collapsed');
+                document.body.classList.add('ai-panel-collapsed');
+            }
+        }
+
+        // 智能回复逻辑
+        function getResponse(query) {
+            const lowerQuery = query.toLowerCase();
+            const isChinese = /[\u4e00-\u9fa5]/.test(query);
+
+            // 遍历所有意图进行匹配
+            const match = viviProfile.intents.find(intent => {
+                // 检查是否有任何关键词出现在查询中
+                return intent.keywords.some(keyword => lowerQuery.includes(keyword.toLowerCase()));
+            });
+
+            if (match) {
+                return isChinese ? match.response.zh : match.response.en;
+            }
+
+            // 兜底回复
+            return isChinese ? viviProfile.fallback_response.zh : viviProfile.fallback_response.en;
+        }
+
+        function getRandomSuggestions(isChinese) {
+             const pool = isChinese ? viviProfile.suggestions.zh : viviProfile.suggestions.en;
+             // Shuffle and take 3
+             return pool.slice().sort(() => 0.5 - Math.random()).slice(0, 3);
+        }
+
+        function addMessage(text, isUser = false) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('chat-bubble');
+            if (isUser) {
+                bubble.style.alignSelf = 'flex-end';
+                bubble.style.background = '#00D9C0';
+                bubble.style.color = '#fff';
+            }
+            bubble.innerText = text;
+            chatArea.appendChild(bubble);
+            
+            // 自动滚动到底部
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function triggerAIResponse(query) {
+            const isChinese = /[\u4e00-\u9fa5]/.test(query);
+             // 模拟思考延迟
+             setTimeout(() => {
+                const response = getResponse(query);
+                addMessage(response, false); // AI 回复
+                
+                // 延迟显示建议问题
+                setTimeout(() => {
+                    const suggestions = getRandomSuggestions(isChinese);
+                    suggestions.forEach(s => addMessage(s, false));
+                }, 300);
+            }, 500);
+        }
+
+        // 绑定输入框回车事件
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = inputField.value.trim();
+                if (query) {
+                    addMessage(query, true); // 用户消息
+                    inputField.value = '';
+                    
+                    triggerAIResponse(query);
+                }
+            }
+        });
+
+        // 绑定气泡点击事件 (委托)
+        chatArea.addEventListener('click', (e) => {
+            if (e.target.classList.contains('chat-bubble')) {
+                // 如果是 AI 的建议气泡 (非用户发的)
+                if (e.target.style.alignSelf !== 'flex-end') {
+                    const text = e.target.innerText;
+                    
+                    // 将点击的内容视为输入，直接触发回复
+                    addMessage(text, true);
+                    
+                    triggerAIResponse(text);
+                }
+            }
+        });
+
+        // --- 视图切换逻辑 ---
+        function switchView(viewName) {
+            const navImg = document.getElementById('navImg');
+            
+            if (viewName === 'work') {
+                navImg.src = 'images/work button.svg';
+            } else {
+                navImg.src = 'images/playground.svg';
+            }
+
+            document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewName).classList.add('active');
+        }
+
+        // --- Work 区域：右下角左右箭头切换项目，并控制当前项目标题/标签的显示 ---
+        const workContainer = document.getElementById('workScroll');
+        const workCardWrappers = document.querySelectorAll('.work-cards-scaled .work-card-wrapper');
+        const projectCount = 4; // Surge, Nox, Startline, Unibee
+        let currentProjectIndex = 0;
+
+        /** 只让指定索引的项目显示「封面上的标题 + 下方标签/日期」（与 hover 同效果），不改变箭头选中的索引 */
+        function setProjectFocus(index) {
+            workCardWrappers.forEach((el, i) => el.classList.toggle('show-info', i === index));
+        }
+
+        /** 按「一个项目」步进，并显示该项目的标题与标签信息 */
+        function scrollContent(direction) {
+            const cardStep = 400 + 24;
+            if (direction === 'right') {
+                currentProjectIndex = Math.min(projectCount - 1, currentProjectIndex + 1);
+                setProjectFocus(currentProjectIndex);
+                workContainer.scrollBy({ left: cardStep, behavior: 'smooth' });
+            } else {
+                currentProjectIndex = Math.max(0, currentProjectIndex - 1);
+                setProjectFocus(currentProjectIndex);
+                workContainer.scrollBy({ left: -cardStep, behavior: 'smooth' });
+            }
+        }
+
+        // 初始显示第一个项目的信息
+        setProjectFocus(0);
+
+        // 鼠标悬停某卡片时显示该卡片信息，移出后恢复为箭头选中的项目
+        workCardWrappers.forEach((wrapper, i) => {
+            if (i >= projectCount) return;
+            wrapper.addEventListener('mouseenter', () => setProjectFocus(i));
+            wrapper.addEventListener('mouseleave', () => setProjectFocus(currentProjectIndex));
+        });
+
+        // 自定义光标：跟随鼠标，点击时 60% 不透明度 + 120% 放大
+        (function () {
+            var cursor = document.getElementById('custom-cursor');
+            if (!cursor) return;
+            var x = 0, y = 0;
+            var raf = null;
+            function updatePos() {
+                cursor.style.left = x + 'px';
+                cursor.style.top = y + 'px';
+                raf = null;
+            }
+            document.addEventListener('mousemove', function (e) {
+                x = e.clientX;
+                y = e.clientY;
+                if (!raf) raf = requestAnimationFrame(updatePos);
+            });
+            document.addEventListener('mousedown', function () {
+                cursor.classList.add('pressed');
+            });
+            document.addEventListener('mouseup', function () {
+                cursor.classList.remove('pressed');
+            });
+        })();
+
+    </script>
+</body>
+</html>
