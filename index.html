@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="vivi. — Product designer. vvstudio® is a design studio for those who build with care.">
+    <meta property="og:title" content="vivi. | vvstudio">
+    <meta property="og:description" content="Product designer. vvstudio® is a design studio for those who build with care.">
     <link rel="icon" type="image/png" href="images/avatar_browser.png">
-    <title>Design Preview - AI Portfolio</title>
+    <title>vivi. | vvstudio</title>
     <style>
         /* 全局样式 */
         @font-face {
@@ -339,6 +342,16 @@
             transform-origin: left center; /* 从左缩放，第一张 Surge 不被推出视口 */
         }
 
+        /* 项目外链：保持与卡片一致展示，新标签打开 */
+        .work-card-link {
+            display: inline-block;
+            text-decoration: none;
+            color: inherit;
+            margin-right: 24px; /* 项目之间间距 24px */
+        }
+        .work-card-link .work-card-wrapper {
+            margin-right: 0; /* 由外层 a 提供间距 */
+        }
         .work-card-wrapper {
             display: inline-block;
             margin-right: 24px; /* 项目之间间距 24px */
@@ -445,6 +458,7 @@
 
 
         /* ---------------- Playground 视图 (自适应居中网格) ---------------- */
+        /* 滚动由 #view-playground 负责，保证滚动条始终在视口最右侧 */
         .playground-grid {
             display: grid;
             grid-template-columns: repeat(3, 320px);
@@ -454,8 +468,7 @@
             width: 100%;
             max-width: 1080px; /* 3×320 + 2×20 + 左右 padding 40×2 */
             margin: 0 auto;
-            height: 100%;
-            overflow-y: auto;
+            min-height: 100%; /* 由内容撑高，父级 #view-playground 负责滚动 */
             padding: 80px 40px;
             box-sizing: border-box;
         }
@@ -639,6 +652,7 @@
                 </div>
 
                 <!-- 卡片 2 (Nox) -->
+                <a href="https://nox.ventures/" target="_blank" rel="noopener noreferrer" class="work-card-link">
                 <div class="work-card-wrapper">
                     <div class="card-info-top">
                         <div class="card-title">Nox Ventures</div>
@@ -655,6 +669,7 @@
                         <span class="card-date">2025.2</span>
                     </div>
                 </div>
+                </a>
 
                 <!-- 卡片 3 (Startline) -->
                 <div class="work-card-wrapper">
