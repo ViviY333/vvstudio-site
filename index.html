@@ -6,7 +6,7 @@
     <meta name="description" content="vivi. — Product designer. vvstudio® is a design studio for those who build with care.">
     <meta property="og:title" content="vivi. | vvstudio">
     <meta property="og:description" content="Product designer. vvstudio® is a design studio for those who build with care.">
-    <link rel="icon" type="image/png" href="images/avatar_browser.png">
+    <link rel="icon" type="image/png" href="images/avatarAI.png">
     <title>vivi. | vvstudio</title>
     <style>
         /* 全局样式 */
@@ -38,6 +38,10 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        ::selection {
+            background-color: #A8FFE8;
         }
 
         body {
@@ -143,7 +147,7 @@
             margin-bottom: 16px;
             /* 展开状态下无描边 */
             transition: all 0.3s ease;
-            background-image: url('images/avatar_browser.png');
+            background-image: url('images/avatarAI.png');
             background-size: cover;
             background-position: center;
         }
@@ -156,7 +160,7 @@
             width: 32px;
             height: 32px;
             border-radius: 50%; /* 圆形 */;
-            background-image: url('images/avatar_browser.png');
+            background-image: url('images/avatarAI.png');
             background-size: cover;
             background-position: center;
             cursor: none;
@@ -181,8 +185,8 @@
             display: flex;
             flex-direction: column;
             /* justify-content: flex-end;  移除这个，改用 auto margin 或者保持 flex-end 但配合 overflow */
-            padding-bottom: 24px;
-            gap: 12px;
+            padding-bottom: 24px; /* 增加底部 padding */
+            gap: 12px; /* 气泡间距 */
             overflow-y: auto; /* 关键：允许内部滚动 */
             margin-bottom: 12px; /* 与输入框的间距 */
             
@@ -198,34 +202,40 @@
         .chat-bubble {
             font-family: 'Roboto Mono', monospace;
             font-size: 12px;
-            color: var(--c-gray-text);
+            color: #666; /* 稍微深一点的灰色文字 */
             background: #f9f9f9;
             padding: 8px 12px;
-            border-radius: 16px;
+            border-radius: 12px; /* 稍微圆润一点 */
             align-self: flex-start;
-            cursor: none;
-            transition: background 0.2s;
+            cursor: pointer; 
+            transition: all 0.2s ease;
             max-width: 90%; 
             word-wrap: break-word;
-            margin-bottom: 4px;
+            line-height: 1.4;
+            margin-bottom: 0; 
         }
-        .chat-bubble:hover { background: #eee; }
+        .chat-bubble:hover { 
+            background-color: #A8FFE8 !important; 
+            color: #333 !important;
+        }
 
         /* 确保第一条消息会被推到底部 (如果没有填满屏幕) */
         .chat-spacer {
             flex: 1;
         }
 
-        /* 底部输入框 - 固定在 Flex 底部 (无需 position:fixed, 因为父容器是 flex column) */
+        /* 底部输入框 */
         .input-box {
-            height: 44px;
-            border: 1px solid var(--c-gray-light);
-            border-radius: 4px;
-            padding: 0 12px;
+            height: 48px; /* 稍微加高一点 */
+            border: 1px solid #E5E5E5;
+            border-radius: 12px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
-            flex-shrink: 0; /* 防止被压缩 */
+            flex-shrink: 0;
             background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            transition: border-color 0.2s;
         }
         .input-box input {
             width: 100%;
@@ -236,7 +246,10 @@
             color: var(--c-black);
         }
         .input-box input::placeholder { color: var(--c-gray-text); }
-        .input-box:focus-within { border-color: var(--c-black); }
+        .input-box:focus-within {
+            border-color: #A8FFE8;
+            box-shadow: 0 0 0 2px rgba(168, 255, 232, 0.3);
+        }
 
 
         /* ---------------- 右侧内容区域 ---------------- */
@@ -368,23 +381,23 @@
             position: relative;
             border-radius: 0;
             overflow: hidden;
-            background: #f0f0f0;
+            background: #FFFFFF;
             cursor: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: none;
             transition: box-shadow 0.3s ease;
         }
 
         .work-card-wrapper:hover {
-            transform: scale(1.02);
             z-index: 10; /* 提升层级 */
         }
         .work-card-wrapper:hover .work-card {
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: none;
         }
 
         .card-cover {
             width: 100%;
             height: 100%;
+            background-color: #FFFFFF;
             background-size: cover;
             background-position: center;
             position: absolute;
@@ -503,7 +516,7 @@
             height: 320px;
             aspect-ratio: 1/1;
             max-width: 100%;
-            background: #eee;
+            background: #FFFFFF;
             border-radius: 0;
             position: relative;
             overflow: hidden;
@@ -560,6 +573,14 @@
             display: none;
         }
 
+        /* 光标悬停到英文单词时，单词变青色 */
+        .word-hover {
+            transition: color 0.15s ease;
+        }
+        .word-hover:hover {
+            color: #4FF8CC;
+        }
+
     </style>
 </head>
 <body>
@@ -595,9 +616,9 @@
 
             <div class="chat-area">
                 <div class="chat-spacer"></div> <!-- 新增：用于推到底部 -->
-                <div class="chat-bubble">what projects are you working on</div>
-                <div class="chat-bubble">can you code</div>
-                <div class="chat-bubble">你在做什么项目</div>
+                <div class="chat-bubble">Design process?</div>
+                <div class="chat-bubble">Tell me about Nomad Kit</div>
+                <div class="chat-bubble">How to contact you</div>
             </div>
 
             <div class="input-box">
@@ -627,21 +648,59 @@
         <div class="view-container active" id="view-work">
             <div class="work-scroll-container" id="workScroll">
                 <div class="work-cards-scaled">
-                <!-- 卡片 1 (Surge) -->
+                <!-- 卡片 1 (Nox) -->
+                <a href="nox-case-study.html" class="work-card-link">
                 <div class="work-card-wrapper">
-                    <!-- 上方信息 (hover) -->
+                    <div class="card-info-top">
+                        <div class="card-title">Nox Ventures</div>
+                        <div class="card-subtitle">Strategic co-founder for crypto teams</div>
+                    </div>
+                    <div class="work-card">
+                        <div class="card-cover" style="background-image: url('images/Nox_cover_hero.png');"></div>
+                        <video class="card-video-real" src="images/nox_video.mp4" autoplay loop muted playsinline></video>
+                    </div>
+                    <div class="card-info-bottom">
+                        <div class="card-tags">
+                            <img src="images/Landing page.svg" class="tag-img" alt="Landing page">
+                            <img src="images/label branding.svg" class="tag-img" alt="Branding">
+                        </div>
+                        <span class="card-date">2025.2</span>
+                    </div>
+                </div>
+                </a>
+
+                <!-- 卡片 2 (Startline) -->
+                <a href="startline-case-study.html" class="work-card-link">
+                <div class="work-card-wrapper">
+                     <div class="card-info-top">
+                        <div class="card-title">Startline</div>
+                        <div class="card-subtitle">Your first 5K starts here</div>
+                    </div>
+                    <div class="work-card">
+                        <div class="card-cover" style="background-image: url('images/startline cover.png');"></div>
+                         <div class="card-video">▶ Video Playing (Loop)</div>
+                    </div>
+                    <div class="card-info-bottom">
+                         <div class="card-tags">
+                             <img src="images/Ios app.svg" class="tag-img" alt="iOS">
+                             <img src="images/label uiux.svg" class="tag-img" alt="UIUX">
+                         </div>
+                        <span class="card-date">2025.10</span>
+                    </div>
+                </div>
+                </a>
+
+                <!-- 卡片 3 (Surge) -->
+                <a href="surge-case-study.html" class="work-card-link">
+                <div class="work-card-wrapper">
                     <div class="card-info-top">
                         <div class="card-title">Surge</div>
                         <div class="card-subtitle">First AI agent launchpad on sui</div>
                     </div>
-                    
-                    <!-- 卡片主体 -->
                     <div class="work-card">
                         <div class="card-cover" style="background-image: url('images/card_surge_cover_new.png');"></div>
-                        <video class="card-video-real" src="images/surge_video.mp4" autoplay loop muted playsinline></video>
+                        <video class="card-video-real" src="images/Surge cover video.mp4" autoplay loop muted playsinline></video>
                     </div>
-
-                    <!-- 下方信息 (hover) -->
                     <div class="card-info-bottom">
                         <div class="card-tags">
                             <img src="images/label uiux.svg" class="tag-img" alt="UIUX">
@@ -650,45 +709,7 @@
                         <span class="card-date">2025.8-2026</span>
                     </div>
                 </div>
-
-                <!-- 卡片 2 (Nox) -->
-                <a href="https://nox.ventures/" target="_blank" rel="noopener noreferrer" class="work-card-link">
-                <div class="work-card-wrapper">
-                    <div class="card-info-top">
-                        <div class="card-title">Nox Ventures</div>
-                        <div class="card-subtitle">Strategic co-founder for crypto teams</div>
-                    </div>
-                    <div class="work-card">
-                        <div class="card-cover" style="background-image: url('images/Nox_cover-38b4bf27-bd1b-411a-b826-f3fdd27a5230.png');"></div>
-                        <video class="card-video-real" src="images/nox_video.mp4" autoplay loop muted playsinline></video>
-                    </div>
-                    <div class="card-info-bottom">
-                        <div class="card-tags">
-                            <img src="images/Landing page.svg" class="tag-img" alt="Landing page">
-                        </div>
-                        <span class="card-date">2025.2</span>
-                    </div>
-                </div>
                 </a>
-
-                <!-- 卡片 3 (Startline) -->
-                <div class="work-card-wrapper">
-                     <div class="card-info-top">
-                        <div class="card-title">Startline</div>
-                        <div class="card-subtitle">Next gen dashboard</div>
-                    </div>
-                    <div class="work-card">
-                        <div class="card-cover" style="background-image: url('images/startline cover.png');"></div> <!-- 假设 Startline 封面 -->
-                         <div class="card-video">▶ Video Playing (Loop)</div>
-                    </div>
-                    <div class="card-info-bottom">
-                         <div class="card-tags">
-                             <img src="images/Ios app.svg" class="tag-img" alt="iOS">
-                             <img src="images/label uiux.svg" class="tag-img" alt="UIUX">
-                         </div>
-                        <span class="card-date">2024.12</span>
-                    </div>
-                </div>
 
                 <!-- 卡片 4 (Unibee) -->
                 <div class="work-card-wrapper">
@@ -701,7 +722,7 @@
                     </div>
                     <div class="card-info-bottom">
                         <div class="card-tags">
-                            <img src="images/Product-1.svg" class="tag-img" alt="Product">
+                            <img src="images/label product.svg" class="tag-img" alt="Product">
                             <img src="images/label branding.svg" class="tag-img" alt="Branding">
                         </div>
                         <span class="card-date">2024.11</span>
@@ -714,19 +735,19 @@
         <!-- Playground 视图 -->
         <div class="view-container" id="view-playground">
             <div class="playground-grid">
-                <div class="play-item" style="background-color: #e0e0e0;">
+                <div class="play-item" style="background-color: #FFFFFF;">
                     <video class="play-item-video" src="images/animation_unibee.mp4" autoplay loop muted playsinline></video>
                 </div>
-                <div class="play-item" style="background-color: #d0d0d0;">
+                <div class="play-item" style="background-color: #FFFFFF;">
                     <video class="play-item-video" src="images/animation-charging.mp4" autoplay loop muted playsinline></video>
                 </div>
-                <div class="play-item" style="background-color: #c0c0c0;">
+                <div class="play-item" style="background-color: #FFFFFF;">
                     <video class="play-item-video" src="images/animation_crushsign.mp4" autoplay loop muted playsinline></video>
                 </div>
-                <div class="play-item" style="background-color: #b0b0b0;">
+                <div class="play-item" style="background-color: #FFFFFF;">
                     <img class="play-item-img" src="images/image_nomadkit.png" alt="Nomad Kit">
                 </div>
-                <div class="play-item" style="background-color: #a0a0a0;">
+                <div class="play-item" style="background-color: #FFFFFF;">
                     <video class="play-item-video" src="images/animation_surge.mp4" autoplay loop muted playsinline></video>
                 </div>
             </div>
@@ -1037,6 +1058,48 @@
             document.addEventListener('mouseup', function () {
                 cursor.classList.remove('pressed');
             });
+        })();
+
+        // 英文单词悬停变青：把页面中的英文单词包成 span，悬停时变 #4FF8CC
+        (function () {
+            var skipTags = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, INPUT: 1, TEXTAREA: 1 };
+            var textNodes = [];
+            function collect(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    textNodes.push(node);
+                    return;
+                }
+                if (node.nodeType !== Node.ELEMENT_NODE) return;
+                if (node.id === 'custom-cursor') return;
+                if (skipTags[node.nodeName]) return;
+                for (var i = 0; i < node.childNodes.length; i++) collect(node.childNodes[i]);
+            }
+            collect(document.body);
+            function wrapTextNode(node) {
+                var text = node.textContent;
+                if (!/[A-Za-z]/.test(text)) return;
+                var parent = node.parentNode;
+                if (!parent || skipTags[parent.nodeName]) return;
+                var re = /[A-Za-z][A-Za-z']*/g;
+                var fragment = document.createDocumentFragment();
+                var lastIndex = 0;
+                var result;
+                while ((result = re.exec(text)) !== null) {
+                    if (result.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(text.slice(lastIndex, result.index)));
+                    }
+                    var span = document.createElement('span');
+                    span.className = 'word-hover';
+                    span.textContent = result[0];
+                    fragment.appendChild(span);
+                    lastIndex = re.lastIndex;
+                }
+                if (lastIndex < text.length) {
+                    fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+                }
+                parent.replaceChild(fragment, node);
+            }
+            textNodes.forEach(wrapTextNode);
         })();
 
     </script>

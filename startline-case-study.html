@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STARTLINE — Case Study | vvstudio</title>
+    <link rel="icon" type="image/png" href="images/avatarAI.png">
+    <style>
+        @font-face { font-family: 'Roboto Mono'; src: url('fonts/RobotoMono-VariableFont_wght.ttf') format('truetype'); }
+        @font-face { font-family: 'Instrument Serif'; src: url('fonts/InstrumentSerif-Regular.ttf') format('truetype'); }
+        @font-face { font-family: 'Poppins'; src: url('fonts/Poppins-Regular.ttf') format('truetype'); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --accent: #51FFD2;
+            --bg: #FFFFFF;
+            --text: #1a1a1a;
+            --text-secondary: #666666;
+            --nav-inactive: #999999;
+            --c-gray-light: #e5e5e5;
+            --c-gray-text: #666;
+            --c-black: #1a1a1a;
+        }
+        ::selection { background: var(--accent); color: #1a1a1a; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            cursor: none;
+        }
+        /* 自定义光标：12×12px 青色圆点（与首页一致） */
+        .custom-cursor {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #4FF8CC;
+            pointer-events: none;
+            z-index: 99999;
+            left: 0;
+            top: 0;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        .custom-cursor.pressed {
+            opacity: 0.6;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        .main {
+            max-width: 680px;
+            margin: 112px auto 0;
+            padding: 0 24px 80px;
+        }
+        .page-title {
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 32px;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 24px;
+            line-height: 1.3;
+        }
+        .hero {
+            width: 100%;
+            aspect-ratio: 16/10;
+            background: #FFFFFF;
+            background-image: url('images/startline cover.png');
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 24px;
+        }
+        .tags {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .tag-img { height: 24px; width: auto; display: block; }
+        .date { font-family: 'Roboto Mono', monospace; font-size: 14px; color: var(--text-secondary); margin-left: auto; }
+        .section-label {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .section { margin-bottom: 48px; }
+        .section p { font-family: 'Poppins', sans-serif; color: var(--text-secondary); margin-bottom: 12px; }
+        .section-img-wrapper {
+            width: 632px;
+            max-width: 100%;
+            margin-top: 16px;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .section-img {
+            width: 632px;
+            max-width: 100%;
+            height: auto;
+            max-height: 800px;
+            display: block;
+            object-fit: contain;
+            background: #FFFFFF;
+        }
+        .nav-side {
+            position: fixed;
+            right: 80px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
+        .nav-side a {
+            display: block;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            color: var(--nav-inactive);
+            text-decoration: none;
+            margin-bottom: 8px;
+            transition: color 0.2s ease;
+        }
+        .nav-side a:hover { color: var(--accent); }
+        .nav-side a.active { color: var(--accent); }
+        .nav-back { margin-bottom: 24px; }
+
+        /* AI 面板 (与首页一致) */
+        .ai-panel {
+            width: 280px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--c-gray-light);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            transition: width 0.3s ease;
+        }
+        .ai-panel.collapsed { width: 0; border-right: none; overflow: visible; }
+        .ai-panel-content {
+            padding: 24px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            min-width: 280px;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+        .ai-panel.collapsed .ai-panel-content { opacity: 0; pointer-events: none; }
+        .close-btn {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            font-size: 20px;
+            color: var(--c-gray-text);
+            cursor: none;
+            line-height: 1;
+        }
+        .close-btn:hover { color: var(--c-black); }
+        .avatar-area { margin-top: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            margin-bottom: 16px;
+            background-image: url('images/avatarAI.png');
+            background-size: cover;
+            background-position: center;
+        }
+        .collapsed-avatar {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-image: url('images/avatarAI.png');
+            background-size: cover;
+            background-position: center;
+            cursor: none;
+            z-index: 101;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .ai-panel.collapsed + .collapsed-avatar { opacity: 1; pointer-events: auto; }
+        .user-name { font-size: 14px; font-weight: 600; color: var(--c-black); margin-bottom: 4px; }
+        .user-handle { font-size: 14px; color: var(--c-gray-text); margin-bottom: 24px; }
+        .user-bio { font-size: 14px; color: var(--c-black); line-height: 1.6; text-align: left; }
+        .chat-area { flex: 1; overflow-y: auto; padding-bottom: 24px; gap: 12px; display: flex; flex-direction: column; }
+        .chat-spacer { flex: 1; }
+        .chat-bubble {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            color: #666;
+            background: #f9f9f9;
+            padding: 8px 12px;
+            border-radius: 12px;
+            align-self: flex-start;
+            cursor: none;
+            max-width: 90%;
+        }
+        .chat-bubble:hover { background: #A8FFE8; color: #333; }
+        .input-box {
+            height: 48px;
+            border: 1px solid #E5E5E5;
+            border-radius: 12px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            background: #fff;
+        }
+        .input-box input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            color: var(--c-black);
+        }
+        .content-wrap {
+            padding: 0 80px;
+            transition: margin-left 0.3s ease;
+        }
+        body.ai-panel-collapsed .content-wrap { margin-left: 0; }
+        body:not(.ai-panel-collapsed) .content-wrap { margin-left: 280px; }
+        .main { max-width: 680px; margin-left: auto; margin-right: auto; }
+
+        @media (max-width: 1024px) { .nav-side { right: 24px; } }
+        @media (max-width: 768px) {
+            .nav-side { display: none; }
+            .content-wrap { padding: 0 24px; margin-left: 0 !important; }
+            .main { padding: 0 0 60px; margin-top: 112px; }
+        }
+        /* 光标悬停到单词时，单词变青色（与首页一致） */
+        .word-hover { transition: color 0.15s ease; }
+        .word-hover:hover { color: #4FF8CC; }
+    </style>
+</head>
+<body class="ai-panel-collapsed">
+    <div class="custom-cursor" id="custom-cursor"></div>
+    <div class="ai-panel collapsed" id="aiPanel">
+        <div class="ai-panel-content">
+            <div class="close-btn" onclick="togglePanel(false)">×</div>
+            <div class="avatar-area">
+                <div class="avatar"></div>
+                <div class="user-name">vivi._</div>
+                <div class="user-handle">@vvstudioco</div>
+                <div class="user-bio">Hi, I am a product designer.<br><br>vvstudio® is a design studio for those who build with care.</div>
+            </div>
+            <div class="chat-area">
+                <div class="chat-spacer"></div>
+                <div class="chat-bubble">Design process?</div>
+                <div class="chat-bubble">Tell me about Nomad Kit</div>
+                <div class="chat-bubble">How to contact you</div>
+            </div>
+            <div class="input-box">
+                <input type="text" placeholder="Ask me anything">
+            </div>
+        </div>
+    </div>
+    <div class="collapsed-avatar" onclick="togglePanel(true)" title="Expand AI Panel"></div>
+
+    <div class="content-wrap">
+    <nav class="nav-side" aria-label="Section navigation">
+        <a href="index.html" class="nav-back">← BACK</a>
+        <a href="#overview" class="active">OVERVIEW</a>
+        <a href="#problems">PROBLEMS</a>
+        <a href="#solution">SOLUTION</a>
+        <a href="#design-process">DESIGN PROCESS</a>
+        <a href="#key-screens">KEY SCREENS</a>
+        <a href="#outcome">OUTCOME</a>
+        <a href="#takeaway">TAKEAWAY</a>
+    </nav>
+
+    <main class="main">
+        <h1 class="page-title">STARTLINE</h1>
+        <div class="hero" aria-hidden="true"></div>
+        <div class="tags">
+            <img class="tag-img" src="images/Ios app.svg" alt="iOS">
+            <img class="tag-img" src="images/label uiux.svg" alt="UIUX">
+            <span class="date">2025.10</span>
+        </div>
+
+        <section id="overview" class="section">
+            <div class="section-label">OVERVIEW</div>
+            <p>Startline is an app that takes you from couch to 5K. Not for marathon pros—for people who want to start moving but have no idea where to begin.</p>
+        </section>
+
+        <section id="problems" class="section">
+            <div class="section-label">PROBLEMS</div>
+            <p>Most running apps are either too intense (10K on day one?) or too complicated (data overload). Beginners need something simple, paced, and not scary.</p>
+        </section>
+
+        <section id="solution" class="section">
+            <div class="section-label">SOLUTION</div>
+            <p>Zero friction — open it and know exactly what to do today</p>
+            <p>Game-like progress — weekly plans, daily missions, level up</p>
+            <p>Positive vibes — big numbers, bright orange, running avatar, feel good after</p>
+            <p>Fair pricing — free version works, pay for more plans if you want</p>
+        </section>
+
+        <section id="design-process" class="section">
+            <div class="section-label">DESIGN PROCESS</div>
+            <p>We started by auditing 20+ Gen Z fitness apps to identify what clicks with younger runners—bright energy, instant feedback, and zero intimidation. Translated those insights into a moodboard centered on playful motion and warm confidence, then pushed every screen through iterative refinement in Figma until the interactions felt effortless and the visuals held up at high fidelity.</p>
+        </section>
+
+        <section id="key-screens" class="section">
+            <div class="section-label">KEY SCREENS</div>
+            <p>Logo Design｜Homepage | Social share | Paywall</p>
+            <div class="section-img-wrapper">
+                <img class="section-img" src="images/startline_key.png" alt="Startline Key Screens">
+            </div>
+        </section>
+
+        <section id="outcome" class="section">
+            <div class="section-label">OUTCOME</div>
+            <p>testflight users 2000+</p>
+        </section>
+
+        <section id="takeaway" class="section">
+            <div class="section-label">TAKEAWAY</div>
+            <p>For beginner tools, lower the mental barrier. More features ≠ better. Make users feel "I can actually do this"</p>
+        </section>
+    </main>
+    </div>
+
+    <script>
+        // 自定义光标：跟随鼠标，点击时 60% 不透明度 + 120% 放大
+        (function () {
+            var cursor = document.getElementById('custom-cursor');
+            if (cursor) {
+                var x = 0, y = 0;
+                var raf = null;
+                function updatePos() {
+                    cursor.style.left = x + 'px';
+                    cursor.style.top = y + 'px';
+                    raf = null;
+                }
+                document.addEventListener('mousemove', function (e) {
+                    x = e.clientX;
+                    y = e.clientY;
+                    if (!raf) raf = requestAnimationFrame(updatePos);
+                });
+                document.addEventListener('mousedown', function () { cursor.classList.add('pressed'); });
+                document.addEventListener('mouseup', function () { cursor.classList.remove('pressed'); });
+            }
+        })();
+
+        function togglePanel(expand) {
+            var aiPanel = document.getElementById('aiPanel');
+            if (expand) {
+                aiPanel.classList.remove('collapsed');
+                document.body.classList.remove('ai-panel-collapsed');
+            } else {
+                aiPanel.classList.add('collapsed');
+                document.body.classList.add('ai-panel-collapsed');
+            }
+        }
+        (function () {
+            var navLinks = document.querySelectorAll('.nav-side a[href^="#"]');
+            var sections = document.querySelectorAll('.main section[id]');
+            function updateActive() {
+                var top = window.scrollY + 120;
+                var current = '';
+                sections.forEach(function (s) {
+                    if (s.offsetTop <= top) current = s.id;
+                });
+                navLinks.forEach(function (a) {
+                    var href = a.getAttribute('href');
+                    if (href === '#') return;
+                    a.classList.toggle('active', href === '#' + current);
+                });
+            }
+            window.addEventListener('scroll', updateActive);
+            updateActive();
+        })();
+
+        // 英文单词悬停变青：与首页一致
+        (function () {
+            var skipTags = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, INPUT: 1, TEXTAREA: 1 };
+            var textNodes = [];
+            function collect(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    textNodes.push(node);
+                    return;
+                }
+                if (node.nodeType !== Node.ELEMENT_NODE) return;
+                if (node.id === 'custom-cursor') return;
+                if (skipTags[node.nodeName]) return;
+                for (var i = 0; i < node.childNodes.length; i++) collect(node.childNodes[i]);
+            }
+            collect(document.body);
+            function wrapTextNode(node) {
+                var text = node.textContent;
+                if (!/[A-Za-z]/.test(text)) return;
+                var parent = node.parentNode;
+                if (!parent || skipTags[parent.nodeName]) return;
+                var re = /[A-Za-z][A-Za-z']*/g;
+                var fragment = document.createDocumentFragment();
+                var lastIndex = 0;
+                var result;
+                while ((result = re.exec(text)) !== null) {
+                    if (result.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(text.slice(lastIndex, result.index)));
+                    }
+                    var span = document.createElement('span');
+                    span.className = 'word-hover';
+                    span.textContent = result[0];
+                    fragment.appendChild(span);
+                    lastIndex = re.lastIndex;
+                }
+                if (lastIndex < text.length) {
+                    fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+                }
+                parent.replaceChild(fragment, node);
+            }
+            textNodes.forEach(wrapTextNode);
+        })();
+    </script>
+</body>
+</html>
