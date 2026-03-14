@@ -306,6 +306,84 @@
             cursor: none;
         }
 
+        /* ---------------- Expandable Tabs (替代 Works/Playground) ---------------- */
+        .expandable-tabs {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 4px;
+            border-radius: 16px;
+            border: 1px solid var(--c-gray-light);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: none;
+        }
+        .expandable-tabs .tab-btn {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--c-gray-text);
+            background: transparent;
+            cursor: none;
+            transition: gap 0.35s ease, padding 0.35s ease, color 0.2s, background 0.2s;
+            overflow: hidden;
+        }
+        .expandable-tabs .tab-btn:hover {
+            color: var(--c-black);
+            background: var(--c-gray-light);
+        }
+        .expandable-tabs .tab-btn.selected {
+            color: var(--c-black);
+            background: var(--c-gray-light);
+            gap: 8px;
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+        .expandable-tabs .tab-btn .tab-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .expandable-tabs .tab-btn .tab-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .expandable-tabs .tab-btn .tab-label {
+            white-space: nowrap;
+            overflow: hidden;
+            max-width: 0;
+            opacity: 0;
+            transition: max-width 0.4s ease, opacity 0.25s ease;
+        }
+        .expandable-tabs .tab-btn.selected .tab-label {
+            max-width: 120px;
+            opacity: 1;
+        }
+        .expandable-tabs .tab-sep {
+            width: 1.2px;
+            height: 20px;
+            background: var(--c-gray-light);
+            margin: 0 2px;
+        }
 
         /* ---------------- 视图容器 ---------------- */
         .view-container {
@@ -608,7 +686,7 @@
                 <div class="avatar"></div>
                 <div class="user-name">vivi._</div>
                 <div class="user-handle">@vvstudioco</div>
-                <div class="user-bio">
+                <div class="user-bio" data-i18n="user_bio">
                     Hi, I am a product designer.<br>
                     vvstudio® is a design studio for those who build with care.
                 </div>
@@ -616,32 +694,45 @@
 
             <div class="chat-area">
                 <div class="chat-spacer"></div> <!-- 新增：用于推到底部 -->
-                <div class="chat-bubble">Design process?</div>
-                <div class="chat-bubble">Tell me about Nomad Kit</div>
-                <div class="chat-bubble">How to contact you</div>
+                <div class="chat-bubble" data-i18n="chat_design">Design process?</div>
+                <div class="chat-bubble" data-i18n="chat_nomad">Tell me about Nomad Kit</div>
+                <div class="chat-bubble" data-i18n="chat_contact">How to contact you</div>
             </div>
 
             <div class="input-box">
-                <input type="text" placeholder="Ask me anything">
+                <input type="text" data-i18n-placeholder="placeholder_ask" placeholder="Ask me anything">
             </div>
         </div>
     </div>
 
     <!-- 收起态头像 (独立于 Panel) -->
-    <div class="collapsed-avatar" onclick="togglePanel(true)" title="Expand AI Panel"></div>
+    <div class="collapsed-avatar" onclick="togglePanel(true)" data-i18n-title="expand_panel" title="Expand AI Panel"></div>
 
     <!-- 右侧内容 -->
     <div class="content-area">
         
-        <!-- 悬浮导航 (新 SVG 实现) -->
-        <div class="nav-container">
-            <!-- 默认显示 Work 激活状态 -->
-            <img id="navImg" src="images/work button.svg" alt="Navigation" class="nav-img">
-            <!-- 点击区域 -->
-            <div class="nav-click-overlay">
-                <div class="nav-click-left" onclick="switchView('work')"></div>
-                <div class="nav-click-right" onclick="switchView('playground')"></div>
-            </div>
+        <!-- Expandable Tabs：Works / Playground -->
+        <div class="expandable-tabs" id="expandableTabs">
+            <button type="button" class="tab-btn selected" data-view="work" aria-label="Works">
+                <span class="tab-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect x="2" y="8" width="20" height="12" rx="2"/></svg>
+                </span>
+                <span class="tab-label" data-i18n="tab_works">Works</span>
+            </button>
+            <div class="tab-sep" aria-hidden="true"></div>
+            <button type="button" class="tab-btn" data-view="playground" aria-label="Playground">
+                <span class="tab-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                </span>
+                <span class="tab-label" data-i18n="tab_playground">Playground</span>
+            </button>
+            <div class="tab-sep" aria-hidden="true"></div>
+            <button type="button" class="tab-btn tab-lang" data-action="lang" aria-label="语言 Language">
+                <span class="tab-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </span>
+                <span class="tab-label" id="langTabLabel">中</span>
+            </button>
         </div>
 
         <!-- Work 视图 -->
@@ -653,7 +744,7 @@
                 <div class="work-card-wrapper">
                     <div class="card-info-top">
                         <div class="card-title">Nox Ventures</div>
-                        <div class="card-subtitle">Strategic co-founder for crypto teams</div>
+                        <div class="card-subtitle" data-i18n="card_nox_subtitle">Strategic co-founder for crypto teams</div>
                     </div>
                     <div class="work-card">
                         <div class="card-cover" style="background-image: url('images/Nox_cover_hero.png');"></div>
@@ -661,8 +752,8 @@
                     </div>
                     <div class="card-info-bottom">
                         <div class="card-tags">
-                            <img src="images/Landing page.svg" class="tag-img" alt="Landing page">
-                            <img src="images/label branding.svg" class="tag-img" alt="Branding">
+                            <img src="images/Landing page.svg" class="tag-img" data-i18n-alt="alt_landing_page" alt="Landing page">
+                            <img src="images/label branding.svg" class="tag-img" data-i18n-alt="alt_branding" alt="Branding">
                         </div>
                         <span class="card-date">2025.2</span>
                     </div>
@@ -674,16 +765,16 @@
                 <div class="work-card-wrapper">
                      <div class="card-info-top">
                         <div class="card-title">Startline</div>
-                        <div class="card-subtitle">Your first 5K starts here</div>
+                        <div class="card-subtitle" data-i18n="card_startline_subtitle">Your first 5K starts here</div>
                     </div>
                     <div class="work-card">
                         <div class="card-cover" style="background-image: url('images/startline cover.png');"></div>
-                         <div class="card-video">▶ Video Playing (Loop)</div>
+                         <div class="card-video" data-i18n="video_playing_loop">▶ Video Playing (Loop)</div>
                     </div>
                     <div class="card-info-bottom">
                          <div class="card-tags">
-                             <img src="images/Ios app.svg" class="tag-img" alt="iOS">
-                             <img src="images/label uiux.svg" class="tag-img" alt="UIUX">
+                             <img src="images/Ios app.svg" class="tag-img" data-i18n-alt="alt_ios" alt="iOS">
+                             <img src="images/label uiux.svg" class="tag-img" data-i18n-alt="alt_uiux" alt="UIUX">
                          </div>
                         <span class="card-date">2025.10</span>
                     </div>
@@ -695,7 +786,7 @@
                 <div class="work-card-wrapper">
                     <div class="card-info-top">
                         <div class="card-title">Surge</div>
-                        <div class="card-subtitle">First AI agent launchpad on sui</div>
+                        <div class="card-subtitle" data-i18n="card_surge_subtitle">First AI agent launchpad on sui</div>
                     </div>
                     <div class="work-card">
                         <div class="card-cover" style="background-image: url('images/card_surge_cover_new.png');"></div>
@@ -703,31 +794,33 @@
                     </div>
                     <div class="card-info-bottom">
                         <div class="card-tags">
-                            <img src="images/label uiux.svg" class="tag-img" alt="UIUX">
-                            <img src="images/label branding.svg" class="tag-img" alt="Branding">
+                            <img src="images/label uiux.svg" class="tag-img" data-i18n-alt="alt_uiux" alt="UIUX">
+                            <img src="images/label branding.svg" class="tag-img" data-i18n-alt="alt_branding" alt="Branding">
                         </div>
                         <span class="card-date">2025.8-2026</span>
                     </div>
                 </div>
                 </a>
 
-                <!-- 卡片 4 (Unibee) -->
+                <!-- 卡片 4 (UniBee) -->
+                <a href="unibee-case-study.html" class="work-card-link">
                 <div class="work-card-wrapper">
                     <div class="card-info-top">
-                        <div class="card-title">Unibee</div>
-                        <div class="card-subtitle">opensource payment saas</div>
+                        <div class="card-title">UniBee</div>
+                        <div class="card-subtitle" data-i18n="card_unibee_subtitle">opensource payment saas</div>
                     </div>
                     <div class="work-card">
                         <div class="card-cover" style="background-image: url('images/unibee_cover.png');"></div>
                     </div>
                     <div class="card-info-bottom">
                         <div class="card-tags">
-                            <img src="images/label product.svg" class="tag-img" alt="Product">
-                            <img src="images/label branding.svg" class="tag-img" alt="Branding">
+                            <img src="images/label product.svg" class="tag-img" data-i18n-alt="alt_product" alt="Product">
+                            <img src="images/label branding.svg" class="tag-img" data-i18n-alt="alt_branding" alt="Branding">
                         </div>
                         <span class="card-date">2024.11</span>
                     </div>
                 </div>
+                </a>
                 </div>
             </div>
         </div>
@@ -745,7 +838,7 @@
                     <video class="play-item-video" src="images/animation_crushsign.mp4" autoplay loop muted playsinline></video>
                 </div>
                 <div class="play-item" style="background-color: #FFFFFF;">
-                    <img class="play-item-img" src="images/image_nomadkit.jpg" alt="Nomad Kit">
+                    <img class="play-item-img" src="images/image_nomadkit.jpg" data-i18n-alt="alt_nomad_kit" alt="Nomad Kit">
                 </div>
                 <div class="play-item" style="background-color: #FFFFFF;">
                     <video class="play-item-video" src="images/animation_surge.mp4" autoplay loop muted playsinline></video>
@@ -755,7 +848,7 @@
 
         <!-- 底部导航按钮 (新 SVG 实现) -->
         <div class="nav-buttons-container">
-            <img src="images/左右.svg" alt="Scroll Buttons" class="nav-buttons-img">
+            <img src="images/左右.svg" data-i18n-alt="alt_scroll_buttons" alt="Scroll Buttons" class="nav-buttons-img">
             <div class="nav-buttons-overlay">
                 <!-- 假设左半边是左滚，右半边是右滚 -->
                 <div class="nav-btn-click" onclick="scrollContent('left')"></div>
@@ -786,6 +879,54 @@
         - 工作室：vvstudio® — build with care
         - 联系：willoww040@gmail.com
         */
+
+        // --- 全局中英文案 (tab 显示「中」时整页为中文) ---
+        var I18N = {
+            title: { en: "vvstudio — a design studio for those who build with care", zh: "vvstudio — 用心创作的设计工作室" },
+            user_bio: { en: "Hi, I am a product designer.\nvvstudio® is a design studio for those who build with care.", zh: "嗨，我是产品设计师。\nvvstudio® 是一家用心创作的设计工作室。" },
+            chat_design: { en: "Design process?", zh: "设计流程？" },
+            chat_nomad: { en: "Tell me about Nomad Kit", zh: "介绍一下 Nomad Kit" },
+            chat_contact: { en: "How to contact you", zh: "如何联系你" },
+            placeholder_ask: { en: "Ask me anything", zh: "随便问我" },
+            expand_panel: { en: "Expand AI Panel", zh: "展开 AI 面板" },
+            tab_works: { en: "Works", zh: "作品" },
+            tab_playground: { en: "Playground", zh: "实验场" },
+            card_nox_subtitle: { en: "Strategic co-founder for crypto teams", zh: "为加密团队提供战略联创" },
+            card_startline_subtitle: { en: "Your first 5K starts here", zh: "你的第一个 5K 从这里开始" },
+            card_surge_subtitle: { en: "First AI agent launchpad on sui", zh: "Sui 上首个 AI 智能体启动平台" },
+            card_unibee_subtitle: { en: "opensource payment saas", zh: "开源支付 SaaS" },
+            video_playing_loop: { en: "▶ Video Playing (Loop)", zh: "▶ 视频播放中（循环）" },
+            alt_landing_page: { en: "Landing page", zh: "落地页" },
+            alt_ios: { en: "iOS", zh: "iOS" },
+            alt_uiux: { en: "UIUX", zh: "UI/UX" },
+            alt_branding: { en: "Branding", zh: "品牌" },
+            alt_product: { en: "Product", zh: "产品" },
+            alt_nomad_kit: { en: "Nomad Kit", zh: "Nomad Kit" },
+            alt_scroll_buttons: { en: "Scroll Buttons", zh: "滚动" }
+        };
+
+        function applyLang(lang) {
+            var key;
+            document.title = I18N.title[lang];
+            document.querySelectorAll("[data-i18n]").forEach(function (el) {
+                key = el.getAttribute("data-i18n");
+                if (!I18N[key] || !I18N[key][lang]) return;
+                if (key === "user_bio") el.innerHTML = I18N[key][lang].replace(/\n/g, "<br>");
+                else el.textContent = I18N[key][lang];
+            });
+            document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+                key = el.getAttribute("data-i18n-placeholder");
+                if (I18N[key] && I18N[key][lang]) el.placeholder = I18N[key][lang];
+            });
+            document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+                key = el.getAttribute("data-i18n-title");
+                if (I18N[key] && I18N[key][lang]) el.title = I18N[key][lang];
+            });
+            document.querySelectorAll("[data-i18n-alt]").forEach(function (el) {
+                key = el.getAttribute("data-i18n-alt");
+                if (I18N[key] && I18N[key][lang]) el.setAttribute("alt", I18N[key][lang]);
+            });
+        }
 
         // --- AI 面板数据 (vibe coding 核心配置) ---
         const viviProfile = {
@@ -989,22 +1130,81 @@
 
         // --- 视图切换逻辑 ---
         function switchView(viewName) {
-            const navImg = document.getElementById('navImg');
-            
-            if (viewName === 'work') {
-                navImg.src = 'images/work button.svg';
-            } else {
-                navImg.src = 'images/Playground button.svg';
-            }
-
             document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + viewName).classList.add('active');
         }
 
+        // --- Expandable Tabs：选中展开、点击外部收起 ---
+        (function () {
+            var tabsEl = document.getElementById('expandableTabs');
+            var tabBtns = tabsEl ? tabsEl.querySelectorAll('.tab-btn') : [];
+            var currentView = 'work';
+            var selectedIndex = 0;
+
+            function setSelected(index) {
+                selectedIndex = index;
+                tabBtns.forEach(function (btn, i) {
+                    btn.classList.toggle('selected', index >= 0 && i === index);
+                });
+            }
+
+            function collapse() {
+                setSelected(-1);
+            }
+
+            var langLabelEl = document.getElementById('langTabLabel');
+            var currentLang = 'zh';
+
+            function setLang(lang) {
+                currentLang = lang;
+                window.currentLang = lang;
+                try { localStorage.setItem('lang', lang); } catch (e) {}
+                if (langLabelEl) langLabelEl.textContent = lang === 'zh' ? '中' : 'EN';
+                document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+                applyLang(lang);
+            }
+
+            tabBtns.forEach(function (btn, i) {
+                if (btn.dataset.view) {
+                    btn.addEventListener('click', function () {
+                        var view = btn.dataset.view;
+                        setSelected(i);
+                        currentView = view;
+                        switchView(view);
+                    });
+                }
+                if (btn.dataset.action === 'lang') {
+                    btn.addEventListener('click', function () {
+                        currentLang = currentLang === 'zh' ? 'en' : 'zh';
+                        setLang(currentLang);
+                        setSelected(i);
+                    });
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!tabsEl || selectedIndex === -1) return;
+                if (tabsEl.contains(e.target)) return;
+                collapse();
+            });
+
+            // 初始：根据 hash 决定视图，根据 localStorage 决定语言
+            var initialLang = 'zh';
+            try { initialLang = localStorage.getItem('lang') || 'zh'; } catch (e) {}
+            if (location.hash === '#playground') {
+                setSelected(1);
+                currentView = 'playground';
+                switchView('playground');
+            } else {
+                setSelected(0);
+            }
+            setLang(initialLang);
+        })();
+
         // --- Work 区域：右下角左右箭头切换项目，并控制当前项目标题/标签的显示 ---
         const workContainer = document.getElementById('workScroll');
         const workCardWrappers = document.querySelectorAll('.work-cards-scaled .work-card-wrapper');
-        const projectCount = 4; // Surge, Nox, Startline, Unibee
+        const projectCount = 4; // Surge, Nox, Startline, UniBee
         let currentProjectIndex = 0;
 
         /** 只让指定索引的项目显示「封面上的标题 + 下方标签/日期」（与 hover 同效果），不改变箭头选中的索引 */
