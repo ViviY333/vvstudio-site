@@ -128,42 +128,42 @@
         .nav-side a.active { color: var(--accent); }
         .nav-back { margin-bottom: 24px; }
 
+        /* AI 浮窗 (左上角，与首页一致) */
         .ai-panel {
-            width: 280px;
-            height: 100vh;
-            background: rgba(255, 255, 255, 0.72);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid var(--c-gray-light);
+            position: fixed;
+            top: 68px;
+            left: 16px;
+            width: 340px;
+            max-height: calc(100vh - 84px);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--c-gray-light);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
             display: flex;
             flex-direction: column;
-            position: fixed;
-            left: 0;
-            top: 0;
             z-index: 100;
-            transition: width 0.3s ease;
+            overflow: hidden;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transform-origin: top left;
+            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
         }
-        .ai-panel.collapsed { width: 0; border-right: none; overflow: visible; }
+        .ai-panel.collapsed {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: scale(0.96) translateY(-8px);
+        }
         .ai-panel-content {
             padding: 24px;
             height: 100%;
+            min-height: 320px;
+            max-height: calc(100vh - 84px);
             display: flex;
             flex-direction: column;
-            min-width: 280px;
-            opacity: 1;
-            transition: opacity 0.2s ease;
         }
-        .ai-panel.collapsed .ai-panel-content { opacity: 0; pointer-events: none; }
-        .close-btn {
-            position: absolute;
-            top: 24px;
-            left: 24px;
-            font-size: 20px;
-            color: var(--c-gray-text);
-            cursor: none;
-            line-height: 1;
-        }
-        .close-btn:hover { color: var(--c-black); }
-        .avatar-area { margin-top: 40px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .avatar-area { margin-top: 8px; display: flex; flex-direction: column; align-items: center; text-align: center; }
         .avatar {
             width: 64px;
             height: 64px;
@@ -173,64 +173,116 @@
             background-size: cover;
             background-position: center;
         }
-        .collapsed-avatar {
+        .ai-trigger {
             position: fixed;
             top: 16px;
             left: 16px;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: none;
+            z-index: 102;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+        .ai-trigger:hover { transform: scale(1.05); }
+        .ai-trigger:active { transform: scale(0.98); }
+        .ai-trigger-avatar {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             background-image: url('images/avatarAI.png');
             background-size: cover;
             background-position: center;
-            cursor: none;
-            z-index: 101;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
         }
-        .ai-panel.collapsed + .collapsed-avatar { opacity: 1; pointer-events: auto; }
+        body.ai-panel-collapsed .ai-trigger-avatar { display: block; }
+        body:not(.ai-panel-collapsed) .ai-trigger-avatar { display: none; }
+        .ai-trigger-close {
+            display: none;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #4FF8CC;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 300;
+            line-height: 1;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .ai-trigger-close:hover { background: #3de0b8; }
+        body:not(.ai-panel-collapsed) .ai-trigger-close { display: flex; }
         .user-name { font-size: 14px; font-weight: 600; color: var(--c-black); margin-bottom: 4px; }
         .user-handle { font-size: 14px; color: var(--c-gray-text); margin-bottom: 24px; }
         .user-bio { font-size: 14px; color: var(--c-black); line-height: 1.6; text-align: left; }
-        .chat-area { flex: 1; overflow-y: auto; padding-bottom: 24px; gap: 12px; display: flex; flex-direction: column; }
+        .chat-area { flex: 1; overflow-y: auto; padding-bottom: 24px; gap: 12px; display: flex; flex-direction: column; margin-bottom: 12px; scrollbar-width: none; -ms-overflow-style: none; }
+        .chat-area::-webkit-scrollbar { display: none; }
         .chat-spacer { flex: 1; }
         .chat-bubble {
             font-family: 'Roboto Mono', monospace;
             font-size: 12px;
             color: #666;
-            background: #f9f9f9;
-            padding: 8px 12px;
-            border-radius: 12px;
+            background: #f5f5f5;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border-top-left-radius: 4px;
             align-self: flex-start;
             cursor: none;
-            max-width: 90%;
+            max-width: 88%;
+            word-wrap: break-word;
+            line-height: 1.45;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
         .chat-bubble:hover { background: #A8FFE8; color: #333; }
-        .input-box {
-            height: 48px;
-            border: 1px solid #E5E5E5;
-            border-radius: 12px;
-            padding: 0 16px;
+        .chat-area .chat-bubble.user-msg { align-self: flex-end; border-radius: 16px; border-top-right-radius: 4px; border-top-left-radius: 16px; }
+        .chat-loading {
+            align-self: flex-start;
             display: flex;
             align-items: center;
+            gap: 4px;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border-top-left-radius: 4px;
+            background: #f5f5f5;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .chat-loading-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--c-gray-text);
+            animation: chat-loading-bounce 0.8s ease-in-out infinite;
+        }
+        .chat-loading-dot:nth-child(1) { animation-delay: 0s; }
+        .chat-loading-dot:nth-child(2) { animation-delay: 0.1s; }
+        .chat-loading-dot:nth-child(3) { animation-delay: 0.2s; }
+        @keyframes chat-loading-bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+        .input-box {
+            height: 48px;
+            border: 1px solid var(--c-gray-light);
+            border-radius: 24px;
+            padding: 0 16px 0 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             flex-shrink: 0;
             background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .input-box input {
-            width: 100%;
-            border: none;
-            outline: none;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 14px;
-            color: var(--c-black);
-        }
-        .content-wrap {
-            padding: 0 80px;
-            transition: margin-left 0.3s ease;
-        }
-        body.ai-panel-collapsed .content-wrap { margin-left: 0; }
-        body:not(.ai-panel-collapsed) .content-wrap { margin-left: 280px; }
+        .input-box input { flex: 1; border: none; outline: none; font-family: 'Roboto Mono', monospace; font-size: 14px; color: var(--c-black); }
+        .input-box input::placeholder { color: var(--c-gray-text); }
+        .input-box:focus-within { border-color: #A8FFE8; box-shadow: 0 0 0 2px rgba(168, 255, 232, 0.25); }
+        .content-wrap { padding: 0 80px; }
         .main { max-width: 680px; margin-left: auto; margin-right: auto; }
 
         @media (max-width: 1024px) { .nav-side { right: 24px; } }
@@ -257,7 +309,6 @@
     <div class="custom-cursor" id="custom-cursor"></div>
     <div class="ai-panel collapsed" id="aiPanel">
         <div class="ai-panel-content">
-            <div class="close-btn" onclick="togglePanel(false)">×</div>
             <div class="avatar-area">
                 <div class="avatar"></div>
                 <div class="user-name">vivi._</div>
@@ -275,7 +326,10 @@
             </div>
         </div>
     </div>
-    <div class="collapsed-avatar" onclick="togglePanel(true)" data-i18n-title="expand_panel" title="Expand AI Panel"></div>
+    <div class="ai-trigger" id="aiTrigger" onclick="togglePanel(document.body.classList.contains('ai-panel-collapsed'))" data-i18n-title="expand_panel" title="Expand AI Panel">
+        <span class="ai-trigger-avatar"></span>
+        <span class="ai-trigger-close" aria-label="Close">×</span>
+    </div>
     <div class="expandable-tabs" id="expandableTabs">
         <a href="index.html" class="tab-btn" aria-label="Works"><span class="tab-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect x="2" y="8" width="20" height="12" rx="2"/></svg></span><span class="tab-label" data-i18n="tab_works">Works</span></a>
         <div class="tab-sep" aria-hidden="true"></div>
@@ -464,6 +518,64 @@
                 document.body.classList.add('ai-panel-collapsed');
             }
         }
+        var viviProfile = { intents: [{ id: "greeting", keywords: ["hi", "hey", "hello", "你好", "哈喽", "嗨"], response: { zh: "我是 vivi。Heyy 👋 想聊项目、技术栈，还是随便 vibe 一下？", en: "I'm vivi. Heyy 👋 Wanna talk projects, stack, or just vibe?" } }, { id: "intro", keywords: ["who are you", "你是谁", "介绍一下"], response: { zh: "我是 vivi，一个 vibe coding 的设计师。白天在 Nox Ventures 做 Web3 + AI 的 UI/UX，晚上用 Cursor 写 SwiftUI。vvstudio 是我'认真构建'的设计工作室。", en: "I'm vivi, a designer who vibe codes. I do UI/UX for Web3 + AI at Nox Ventures, and build iOS apps with Cursor and SwiftUI. vvstudio is my design practice — build with care." } }, { id: "design_process", keywords: ["design process", "方法", "流程"], response: { zh: "我是 vivi。A/B 测试 + 竞品分析打底，Framer 做高保真验证。在 UniBee 时测了 8 版优惠券界面，CTR 提升了 2000%——数据比感觉靠谱。", en: "I'm vivi. A/B testing and competitive analysis first, then Framer for high-fi validation. At UniBee, I tested 8 coupon variants — version 7 got a 2000% CTR boost. Data beats gut feeling." } }, { id: "contact", keywords: ["contact", "email", "怎么联系", "邮箱"], response: { zh: "我是 vivi。willoww040@gmail.com，或者继续在这儿聊。我回复挺快的。", en: "I'm vivi. willoww040@gmail.com, or keep chatting here. I reply fast." } }, { id: "nox", keywords: ["nox", "web3", "当前工作"], response: { zh: "我是 vivi。Nox Ventures 是个 Web3 + AI 孵化器。我在这里负责 Surge AI（启动平台）和 Adapt（交易代理）的设计。", en: "I'm vivi. Nox Ventures is a Web3 + AI incubator. I design for Surge AI (launchpad) and Adapt (trading agent)." } }], fallback_response: { zh: "我是 vivi。这个问题我还没准备好 vibe 出答案😅 发邮件 willoww040@gmail.com 问我真人吧。", en: "I'm vivi. Haven't quite vibed out an answer for that yet 😅 Email me at willoww040@gmail.com." }, suggestions: { zh: ["你在做什么项目", "设计流程是什么", "怎么联系你"], en: ["What projects are you working on", "Design process?", "How to contact you"] } };
+        (function () {
+            var chatArea = document.querySelector('.chat-area');
+            var inputField = document.querySelector('.input-box input');
+            if (!chatArea || !inputField) return;
+            function getResponse(query) {
+                var lowerQuery = query.toLowerCase();
+                var isChinese = /[\u4e00-\u9fa5]/.test(query);
+                var match = viviProfile.intents.find(function (intent) {
+                    return intent.keywords.some(function (k) { return lowerQuery.indexOf(k.toLowerCase()) !== -1; });
+                });
+                return match ? (isChinese ? match.response.zh : match.response.en) : (isChinese ? viviProfile.fallback_response.zh : viviProfile.fallback_response.en);
+            }
+            function getRandomSuggestions(isChinese) {
+                var pool = isChinese ? viviProfile.suggestions.zh : viviProfile.suggestions.en;
+                return pool.slice().sort(function () { return 0.5 - Math.random(); }).slice(0, 3);
+            }
+            function addMessage(text, isUser) {
+                var bubble = document.createElement('div');
+                bubble.className = 'chat-bubble' + (isUser ? ' user-msg' : '');
+                if (isUser) { bubble.style.background = '#00D9C0'; bubble.style.color = '#fff'; }
+                bubble.textContent = text;
+                chatArea.appendChild(bubble);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+            function showLoadingDots() {
+                var el = document.createElement('div');
+                el.className = 'chat-loading';
+                el.innerHTML = '<span class="chat-loading-dot"></span><span class="chat-loading-dot"></span><span class="chat-loading-dot"></span>';
+                chatArea.appendChild(el);
+                chatArea.scrollTop = chatArea.scrollHeight;
+                return el;
+            }
+            function triggerAIResponse(query) {
+                var isChinese = /[\u4e00-\u9fa5]/.test(query);
+                var loadingEl = showLoadingDots();
+                setTimeout(function () {
+                    if (loadingEl.parentNode) loadingEl.remove();
+                    addMessage(getResponse(query), false);
+                    setTimeout(function () {
+                        getRandomSuggestions(isChinese).forEach(function (s) { addMessage(s, false); });
+                    }, 300);
+                }, 800);
+            }
+            inputField.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    var query = inputField.value.trim();
+                    if (query) { addMessage(query, true); inputField.value = ''; triggerAIResponse(query); }
+                }
+            });
+            chatArea.addEventListener('click', function (e) {
+                if (e.target.classList.contains('chat-bubble') && !e.target.classList.contains('user-msg')) {
+                    var text = e.target.textContent;
+                    addMessage(text, true);
+                    triggerAIResponse(text);
+                }
+            });
+        })();
         (function () {
             var navLinks = document.querySelectorAll('.nav-side a[href^="#"]');
             var sections = document.querySelectorAll('.main section[id]');

@@ -81,47 +81,51 @@
             object-fit: cover;
         }
 
-        /* ---------------- AI 面板 (左侧) ---------------- */
+        /* ---------------- AI 浮窗 (左上角) ---------------- */
         .ai-panel {
-            width: 280px;
-            height: 100vh;
-            background: rgba(255, 255, 255, 0.72); /* 再透一点，背景颜色更深 */
-            backdrop-filter: blur(10px);
-            border-right: 1px solid var(--c-gray-light);
+            position: fixed;
+            top: 68px; /* 触发器 16+40 + 间距 12px */
+            left: 16px;
+            width: 340px;
+            max-height: calc(100vh - 84px);
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--c-gray-light);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
             display: flex;
             flex-direction: column;
-            position: relative;
-            transition: width 0.3s ease, transform 0.3s ease;
             z-index: 100;
+            overflow: hidden;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            transform-origin: top left;
+            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
         }
 
-        /* AI 面板收起状态 */
+        /* 浮窗关闭状态 */
         .ai-panel.collapsed {
-            width: 0;
-            border-right: none;
-            overflow: visible; /* 允许头像溢出 */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: scale(0.96) translateY(-8px);
         }
 
         .ai-panel-content {
             padding: 24px;
             height: 100%;
+            min-height: 320px;
+            max-height: calc(100vh - 84px);
             display: flex;
             flex-direction: column;
-            opacity: 1;
-            transition: opacity 0.2s ease;
-            min-width: 280px; /* 防止内容被压缩 */
         }
 
-        .ai-panel.collapsed .ai-panel-content {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* 关闭按钮 */
+        /* 浮窗内关闭按钮（可选，主关闭为左上角 X 按钮） */
         .close-btn {
             position: absolute;
             top: 24px;
-            left: 24px;
+            right: 24px;
+            left: auto;
             font-size: 20px;
             color: var(--c-gray-text);
             cursor: none;
@@ -132,10 +136,10 @@
 
         /* 头像区域 */
         .avatar-area {
-            margin-top: 40px;
+            margin-top: 8px;
             display: flex;
             flex-direction: column;
-            align-items: center; /* 居中对齐 */
+            align-items: center;
             text-align: center;
         }
 
@@ -143,36 +147,61 @@
             width: 64px;
             height: 64px;
             background-color: #eee;
-            border-radius: 50%; /* 圆形头像 */
+            border-radius: 50%;
             margin-bottom: 16px;
-            /* 展开状态下无描边 */
             transition: all 0.3s ease;
             background-image: url('images/avatarAI.png');
             background-size: cover;
             background-position: center;
         }
 
-        /* 收起状态下的头像 */
-        .collapsed-avatar {
+        /* 左上角触发器：关闭时显示头像，打开时显示关闭符号 */
+        .ai-trigger {
             position: fixed;
             top: 16px;
             left: 16px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%; /* 圆形 */;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: none;
+            z-index: 102;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+        .ai-trigger:hover { transform: scale(1.05); }
+        .ai-trigger:active { transform: scale(0.98); }
+
+        .ai-trigger-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
             background-image: url('images/avatarAI.png');
             background-size: cover;
             background-position: center;
-            cursor: none;
-            z-index: 101;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
         }
+        body.ai-panel-collapsed .ai-trigger-avatar { display: block; }
+        body:not(.ai-panel-collapsed) .ai-trigger-avatar { display: none; }
 
-        .ai-panel.collapsed + .collapsed-avatar {
-            opacity: 1;
-            pointer-events: auto;
+        .ai-trigger-close {
+            display: none;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #4FF8CC;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 300;
+            line-height: 1;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .ai-trigger-close:hover { background: #3de0b8; }
+        body:not(.ai-panel-collapsed) .ai-trigger-close {
+            display: flex;
         }
 
         .user-name { font-size: 14px; font-weight: 600; color: var(--c-black); margin-bottom: 4px; }
@@ -198,25 +227,35 @@
             display: none; 
         }
 
-        /* 对话气泡样式 */
+        /* 对话气泡样式（参考浮窗对话感：AI 左/用户右） */
         .chat-bubble {
             font-family: 'Roboto Mono', monospace;
             font-size: 12px;
-            color: #666; /* 稍微深一点的灰色文字 */
-            background: #f9f9f9;
-            padding: 8px 12px;
-            border-radius: 12px; /* 稍微圆润一点 */
+            color: #666;
+            background: #f5f5f5;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border-top-left-radius: 4px;
             align-self: flex-start;
-            cursor: pointer; 
+            cursor: pointer;
             transition: all 0.2s ease;
-            max-width: 90%; 
+            max-width: 88%;
             word-wrap: break-word;
-            line-height: 1.4;
-            margin-bottom: 0; 
+            line-height: 1.45;
+            margin-bottom: 0;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
-        .chat-bubble:hover { 
-            background-color: #A8FFE8 !important; 
+        .chat-bubble:hover {
+            background-color: #A8FFE8 !important;
             color: #333 !important;
+        }
+        /* 用户消息气泡（由 JS 加 alignSelf + 背景） */
+        .chat-area .chat-bubble.user-msg {
+            align-self: flex-end;
+            border-radius: 16px;
+            border-top-right-radius: 4px;
+            border-top-left-radius: 16px;
         }
 
         /* 确保第一条消息会被推到底部 (如果没有填满屏幕) */
@@ -224,21 +263,50 @@
             flex: 1;
         }
 
-        /* 底部输入框 */
-        .input-box {
-            height: 48px; /* 稍微加高一点 */
-            border: 1px solid #E5E5E5;
-            border-radius: 12px;
-            padding: 0 16px;
+        /* 输入后省略号加载动效（0.8s 过渡） */
+        .chat-loading {
+            align-self: flex-start;
             display: flex;
             align-items: center;
+            gap: 4px;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border-top-left-radius: 4px;
+            background: #f5f5f5;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .chat-loading-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--c-gray-text);
+            animation: chat-loading-bounce 0.8s ease-in-out infinite;
+        }
+        .chat-loading-dot:nth-child(1) { animation-delay: 0s; }
+        .chat-loading-dot:nth-child(2) { animation-delay: 0.1s; }
+        .chat-loading-dot:nth-child(3) { animation-delay: 0.2s; }
+        @keyframes chat-loading-bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* 底部输入框（圆角胶囊 + 发送感） */
+        .input-box {
+            height: 48px;
+            border: 1px solid var(--c-gray-light);
+            border-radius: 24px;
+            padding: 0 16px 0 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             flex-shrink: 0;
             background: #fff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-            transition: border-color 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .input-box input {
-            width: 100%;
+            flex: 1;
             border: none;
             outline: none;
             font-family: 'Roboto Mono', monospace;
@@ -248,26 +316,19 @@
         .input-box input::placeholder { color: var(--c-gray-text); }
         .input-box:focus-within {
             border-color: #A8FFE8;
-            box-shadow: 0 0 0 2px rgba(168, 255, 232, 0.3);
+            box-shadow: 0 0 0 2px rgba(168, 255, 232, 0.25);
         }
 
 
-        /* ---------------- 右侧内容区域 ---------------- */
+        /* ---------------- 主内容区域（AI 为浮窗，不再占左侧） ---------------- */
         .content-area {
             flex: 1;
             height: 100vh;
             position: relative;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.72); /* 与左侧一致，背景更透、颜色更深 */
+            background: rgba(255, 255, 255, 0.72);
             z-index: 1;
-            transition: padding-left 0.3s ease;
-            /* 设计稿：面板展开时与 AI 面板间距至少 40px */
             padding-left: 40px;
-        }
-        /* AI 面板收起后：项目距离左边页边距至少 160px（用两种选择器保证生效） */
-        body.ai-panel-collapsed .content-area,
-        .ai-panel.collapsed ~ .content-area {
-            padding-left: 200px !important;
         }
 
         /* ---------------- 悬浮导航 (Fixed) ---------------- */
@@ -412,10 +473,11 @@
         /* ---------------- Work 视图 (水平滚动) ---------------- */
         .work-scroll-container {
             width: 100%;
-            overflow-x: auto; /* 可滚动，确保 Surge 等左侧项目不被裁切 */
+            overflow-x: auto;
             overflow-y: visible;
             white-space: nowrap;
-            padding: 0 40px; /* 两侧留白，与设计稿一致 */
+            padding-left: 100px;
+            padding-right: 100px;
             display: flex;
             align-items: center;
             justify-content: flex-start; /* 从左侧开始，Surge 完整展示 */
@@ -431,6 +493,34 @@
             align-items: center;
             transform: scale(1.2);
             transform-origin: left center; /* 从左缩放，第一张 Surge 不被推出视口 */
+        }
+
+        /* UniBee 右侧结束文案：Thanks for watching + 版权（需在 Works 视图下向右滑动可见） */
+        .work-end-block {
+            flex-shrink: 0;
+            margin-left: 48px;
+            min-width: 280px;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .work-end-block .thanks-title {
+            font-family: var(--font-title);
+            font-size: 24px;
+            color: var(--c-black);
+            line-height: 1.3;
+        }
+        .work-end-block .thanks-title span {
+            display: block;
+            white-space: nowrap;
+        }
+        .work-end-block .thanks-spacer { height: 1em; }
+        .work-end-block .thanks-copy {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 10px;
+            color: var(--c-gray-text);
         }
 
         /* 项目外链：保持与卡片一致展示，新标签打开 */
@@ -661,7 +751,7 @@
 
     </style>
 </head>
-<body>
+<body class="ai-panel-collapsed">
 
     <!-- 自定义圆形光标 -->
     <div class="custom-cursor" id="custom-cursor"></div>
@@ -677,11 +767,9 @@
     <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.0.5/dist/unicornStudio.umd.js"></script>
     <script>UnicornStudio.init();</script>
 
-    <!-- AI 面板 -->
-    <div class="ai-panel" id="aiPanel">
+    <!-- AI 浮窗 (左上角，默认收起) -->
+    <div class="ai-panel collapsed" id="aiPanel">
         <div class="ai-panel-content">
-            <div class="close-btn" onclick="togglePanel(false)">×</div>
-            
             <div class="avatar-area">
                 <div class="avatar"></div>
                 <div class="user-name">vivi._</div>
@@ -705,8 +793,11 @@
         </div>
     </div>
 
-    <!-- 收起态头像 (独立于 Panel) -->
-    <div class="collapsed-avatar" onclick="togglePanel(true)" data-i18n-title="expand_panel" title="Expand AI Panel"></div>
+    <!-- 左上角触发器：关闭时头像 / 打开时 X -->
+    <div class="ai-trigger" id="aiTrigger" onclick="togglePanel(document.body.classList.contains('ai-panel-collapsed'))" data-i18n-title="expand_panel" title="Expand AI Panel">
+        <span class="ai-trigger-avatar"></span>
+        <span class="ai-trigger-close" aria-label="Close">×</span>
+    </div>
 
     <!-- 右侧内容 -->
     <div class="content-area">
@@ -821,6 +912,15 @@
                     </div>
                 </div>
                 </a>
+
+                <!-- UniBee 右侧：Thanks for watching + 版权 -->
+                <div class="work-end-block">
+                    <p class="thanks-title">
+                        <span>More coming soon.</span>
+                    </p>
+                    <div class="thanks-spacer" aria-hidden="true"></div>
+                    <p class="thanks-copy">vvstudioco, Inc. ©2026</p>
+                </div>
                 </div>
             </div>
         </div>
@@ -1074,7 +1174,7 @@
             const bubble = document.createElement('div');
             bubble.classList.add('chat-bubble');
             if (isUser) {
-                bubble.style.alignSelf = 'flex-end';
+                bubble.classList.add('user-msg');
                 bubble.style.background = '#00D9C0';
                 bubble.style.color = '#fff';
             }
@@ -1085,19 +1185,28 @@
             chatArea.scrollTop = chatArea.scrollHeight;
         }
 
+        function showLoadingDots() {
+            const el = document.createElement('div');
+            el.className = 'chat-loading';
+            el.innerHTML = '<span class="chat-loading-dot"></span><span class="chat-loading-dot"></span><span class="chat-loading-dot"></span>';
+            chatArea.appendChild(el);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return el;
+        }
+
         function triggerAIResponse(query) {
             const isChinese = /[\u4e00-\u9fa5]/.test(query);
-             // 模拟思考延迟
-             setTimeout(() => {
+            const loadingEl = showLoadingDots();
+            // 0.8s 省略号加载过渡后显示回复
+            setTimeout(() => {
+                if (loadingEl.parentNode) loadingEl.remove();
                 const response = getResponse(query);
-                addMessage(response, false); // AI 回复
-                
-                // 延迟显示建议问题
+                addMessage(response, false);
                 setTimeout(() => {
                     const suggestions = getRandomSuggestions(isChinese);
                     suggestions.forEach(s => addMessage(s, false));
                 }, 300);
-            }, 500);
+            }, 800);
         }
 
         // 绑定输入框回车事件
